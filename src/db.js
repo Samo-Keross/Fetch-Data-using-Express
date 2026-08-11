@@ -158,5 +158,30 @@ async function streamCassandraQuery(user_query) {
   });
 }
 
+export async function executePagedQuery(
+    query,
+    pageSize = 5000,
+    pagingState = null
+) {
+
+  const cassandraClient = await ensureCassandraConnection();
+
+  const result = await cassandraClient.execute(
+      query,
+      [],
+      {
+        prepare: true,
+        fetchSize: pageSize,
+        pageState: pagingState || undefined,
+      }
+  );
+
+  return {
+    rows: result.rows,
+    pagingState: result.pageState,
+    hasMore: !!result.pageState,
+  };
+}
+
 export default initCassandraWithTunnel;
-export { streamCassandraQuery, ensureCassandraConnection };
+export { streamCassandraQuery, ensureCassandraConnection};
